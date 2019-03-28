@@ -38,7 +38,8 @@ func calculate() -> Double {
         XCTAssertTrue(function.body is ReturnNode)
 
         let expression = (function.body as! ReturnNode).body as! BinaryExpressionNode
-        XCTAssertTrue(expression.lhs is NumberNode)
+        XCTAssertTrue(expression.lhs is NumberNode
+        )
         XCTAssertEqual((expression.lhs as! NumberNode).value, 1)
         XCTAssertTrue(expression.rhs is NumberNode)
         XCTAssertEqual((expression.rhs as! NumberNode).value, 2)

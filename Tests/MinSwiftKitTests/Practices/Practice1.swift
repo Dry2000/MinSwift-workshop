@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 import SwiftSyntax
 @testable import MinSwiftKit
-
+//メソッドとしてテストケースを定義
 class Practice1: ParserTestCase {
     let source = """
 func sayHello() {

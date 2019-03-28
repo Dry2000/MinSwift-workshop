@@ -5,26 +5,40 @@ class Parser: SyntaxVisitor {
     private(set) var tokens: [TokenSyntax] = []
     private var index = 0
     private(set) var currentToken: TokenSyntax!
-
+    var count :Int!=0
     // MARK: Practice 1
 
     override func visit(_ token: TokenSyntax) {
+        tokens.append(token)//tokensの配列の中にtokenが入ってないと最後のtokenしか入ってなくて困る
         print("Parsing \(token.tokenKind)")
     }
 
     @discardableResult
     func read() -> TokenSyntax {
-        fatalError("Not Implemented")
+        currentToken = tokens[index]
+        //print(tokens[index].tokenKind)
+        index += 1
+        return currentToken
+        //fatalError("Not Implemented")
     }
 
     func peek(_ n: Int = 0) -> TokenSyntax {
-        fatalError("Not Implemented")
+        var ind = 0
+        for i in 0..<tokens.count{
+            if currentToken == tokens[i]{
+                ind = i+1
+            }
+        }
+        return tokens[ind+n]
+        //fatalError("Not Implemented")
     }
 
     // MARK: Practice 2
 
     private func extractNumberLiteral(from token: TokenSyntax) -> Double? {
-        fatalError("Not Implemented")
+       // fatalError("Not Implemented")
+        let int = token.text
+        return Double(int)
     }
 
     func parseNumber() -> Node {
@@ -36,13 +50,62 @@ class Parser: SyntaxVisitor {
     }
 
     func parseIdentifierExpression() -> Node {
-        fatalError("Not Implemented")
+        var arguments :[CallExpressionNode.Argument]!=[]
+        let tex = currentToken.text
+        read()
+        if currentToken.tokenKind == .leftParen{
+            read()
+            while(true){
+                if currentToken.tokenKind == .rightParen{
+                    break
+                }
+                if currentToken.tokenKind == .colon{
+                    read()
+                }
+                let argument_body = parseExpression()
+                let argument = CallExpressionNode.Argument(label: tex, value: argument_body!)
+                arguments.append(argument)
+                /*if currentToken.tokenKind == .comma{
+                //    read()
+                    continue
+                    
+                }else {
+                    read()
+                    print(arguments)
+                    print(currentToken.tokenKind)
+                    break
+                }*/
+                /*
+                if currentToken.tokenKind == .comma{
+                    read()
+                }*/
+            }
+            read()
+            
+            return CallExpressionNode(callee: tex, arguments:arguments)
+        }else{
+        return VariableNode(identifier:tex)
+       // fatalError("Not Implemented")
+        }
     }
 
     // MARK: Practice 3
 
     func extractBinaryOperator(from token: TokenSyntax) -> BinaryExpressionNode.Operator? {
-        fatalError("Not Implemented")
+        switch currentToken.text {
+        case "+":
+            return BinaryExpressionNode.Operator.addition
+        case "-":
+            return BinaryExpressionNode.Operator.subtraction
+        case "*":
+            return BinaryExpressionNode.Operator.multication
+        case "/":
+            return BinaryExpressionNode.Operator.division
+        default:
+            return nil
+            //fatalError("any number is expected")
+        }
+        
     }
 
     private func parseBinaryOperatorRHS(expressionPrecedence: Int, lhs: Node?) -> Node? {
@@ -83,15 +146,119 @@ class Parser: SyntaxVisitor {
                                               rhs: nonOptionalRHS)
         }
     }
-
+    func CallFunctionDefinitionArgument() -> CallExpressionNode.Argument {
+        var start:Int!
+        var value:Node!
+        for i in 0..<tokens.count{
+            /*print(currentToken.tokenKind)
+             print(tokens[i].tokenKind)*/
+            if tokens[i].tokenKind == currentToken.tokenKind{
+                
+                start = i
+                break
+            }
+        }
+        var name:String!
+        for i in start..<tokens.count{
+            if tokens[i].tokenKind == .comma||tokens[i].tokenKind == .rightParen{
+                read()
+                break
+            }
+            print(currentToken.tokenKind)
+            if tokens[i].tokenKind == .colon{
+                print("Ok")
+                name = tokens[i-1].text
+                for j in i-1..<tokens.count{
+                    if tokens[j].tokenKind == .comma||tokens[j].tokenKind == .rightParen{
+                        break
+                    }
+                    read()
+                    
+                }
+                // print(currentToken.tokenKind)
+            }
+            
+        }
+        value=parseExpression()
+        return CallExpressionNode.Argument.init(label: name, value: value)
+    }
     // MARK: Practice 4
 
     func parseFunctionDefinitionArgument() -> FunctionNode.Argument {
-        fatalError("Not Implemented")
+        var start:Int!
+        
+        for i in 0..<tokens.count{
+            /*print(currentToken.tokenKind)
+            print(tokens[i].tokenKind)*/
+            if tokens[i].tokenKind == currentToken.tokenKind{
+
+                start = i
+                break
+            }
+        }
+        var name:String!
+        for i in start..<tokens.count{
+            if tokens[i].tokenKind == .comma||tokens[i].tokenKind == .rightParen{
+                read()
+              //  print("Ok")
+                break
+            }
+            if tokens[i].tokenKind == .colon{
+                name = tokens[i-1].text
+                read()
+                read()
+                read()
+              // print(currentToken.tokenKind)
+            }
+            
+        }
+        return FunctionNode.Argument.init(label: name, variableName: name)
     }
 
     func parseFunctionDefinition() -> Node {
-        fatalError("Not Implemented")
+        guard case .funcKeyword = currentToken.tokenKind else{
+            fatalError("funcKeyword is expected but received \(currentToken.tokenKind)")
+        }//guard case の条件が真である時、これ以降のコードを実行可能。この場合、本当に関数の名前が来ているかどうか判定している。(本来は他の場所にも適用すべき)
+        read()
+        let name = currentToken.text
+        read()
+        var argument :[FunctionNode.Argument]!=[]
+        for i in 0..<tokens.count{
+           // print(currentToken.indexInParent)
+            if tokens[i].tokenKind == .leftParen && tokens[i+1].tokenKind == .rightParen{
+                read()
+                read()
+                break
+            }
+            if tokens[i].tokenKind == .colon{
+                count+=1
+                if count == 1{
+                    read()
+                }
+               // print(count)
+            }
+          //  print(tokens[i].tokenKind)
+            if tokens[i].tokenKind == .rightParen{
+                for _ in 0..<count{
+                      //  print(count)
+                      //  print(argument)
+                        argument.append(parseFunctionDefinitionArgument())
+                    if count>1&&i<count-1{
+                        read()
+                    }
+
+                }
+            }
+        }
+        read()
+        read()
+        read()
+        let Node = parseExpression()
+       
+        print(Node)
+        read()
+        return FunctionNode.init(name: name, arguments:argument, returnType:Type(rawValue: "Double")!, body: Node!)
+        //fatalError("not implemented")
     }
 
     // MARK: Practice 7
